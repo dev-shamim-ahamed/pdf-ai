@@ -5,6 +5,7 @@ from firebase_admin import credentials, storage
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 
+# Vercel Path Fix
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = "niloy_ultra_secure_2026"
@@ -19,9 +20,10 @@ bucket = storage.bucket()
 
 # --- AI Setup (Gemini 2.5 Flash) ---
 genai.configure(api_key=os.getenv("API_KEY"))
-model = genai.GenerativeModel("gemini-2.5-flash") #
+model = genai.GenerativeModel("gemini-2.5-flash")
 
-SYSTEM_PROMPT = "Your name is Niloy. Respond naturally in a mix of Bengali and Banglish using the provided PDFs."
+# Persona: natural mix of Bengali and Banglish
+SYSTEM_PROMPT = "Your name is Niloy. Respond naturally in Bengali/Banglish using the provided PDFs."
 
 @app.route('/')
 def index():
@@ -41,12 +43,17 @@ def chat():
     user_msg = request.json.get('msg')
     try:
         blobs = bucket.list_blobs(prefix="permanent_memory/")
-        pdf_contents = [{"mime_type": "application/pdf", "data": b.download_as_bytes()} for b in list(blobs)[:3]]
+        pdf_contents = []
+        for blob in list(blobs)[:3]:
+            data = blob.download_as_bytes()
+            # ৪00 error এড়াতে চেক করা হচ্ছে ফাইলটি খালি কি না
+            if len(data) > 0:
+                pdf_contents.append({"mime_type": "application/pdf", "data": data})
         
         if not pdf_contents:
-            return jsonify({'reply': "Sir, 'permanent_memory' folder-e kono PDF paini."})
+            return jsonify({'reply': "Sir, storage-e kono valid PDF paini. Please check korun."})
 
-        response = model.generate_content([SYSTEM_PROMPT] + pdf_contents + [user_msg]) #
+        response = model.generate_content([SYSTEM_PROMPT] + pdf_contents + [user_msg])
         return jsonify({'reply': response.text})
     except Exception as e:
         return jsonify({'reply': f"Ji sir, ektu error hocche: {str(e)}"})
