@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niloy AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { background-color: #050505; color: #fafafa; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
+        .dots { display: flex; gap: 4px; padding: 10px; }
+        .dot { width: 5px; height: 5px; background: #8b5cf6; border-radius: 50%; animation: blink 1.4s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body class="h-screen flex flex-col p-4 md:p-8">
+
+    <header class="flex justify-between items-center mb-8 px-2">
+        <div>
+            <h1 class="text-xl font-medium">hello Niloy sir I'm niloy how can I help you today</h1>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Thought Partner • Secure Memory</p>
+        </div>
+
+        <div class="relative">
+            <button onclick="$('#memoryPanel').toggle()" class="bg-zinc-900 border border-white/5 px-5 py-2.5 rounded-2xl text-xs hover:bg-zinc-800 transition">
+                Memory Center
+            </button>
+            
+            <div id="memoryPanel" class="hidden absolute right-0 mt-4 w-80 glass rounded-3xl p-6 z-50 shadow-2xl">
+                <p class="text-[10px] text-zinc-500 font-bold mb-4">FILES IN MEMORY</p>
+                <div id="fileList" class="space-y-3 mb-6 max-h-40 overflow-y-auto"></div>
+                <input type="file" id="pdfInput" class="hidden" accept=".pdf" onchange="uploadFile()">
+                <button onclick="$('#pdfInput').click()" class="w-full bg-violet-600 py-3 rounded-xl text-xs font-bold hover:bg-violet-500 transition">
+                    + Upload New PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 glass rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
+        <div id="chatBox" class="flex-1 overflow-y-auto p-8 space-y-8">
+            <div class="flex gap-4">
+                <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div>
+                <div class="max-w-[80%] text-sm text-zinc-400 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">
+                    Hello sir! I'm Niloy AI. Upload your PDFs and ask me anything. I won't save any history after you leave.
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 bg-black/20">
+            <div class="max-w-4xl mx-auto relative flex items-center">
+                <input type="text" id="userMsg" placeholder="Ask anything..." 
+                       class="w-full bg-white/5 border border-white/10 rounded-[25px] py-5 px-8 pr-16 focus:outline-none focus:border-violet-600/50 transition-all text-sm">
+                <button onclick="sendMsg()" class="absolute right-3 bg-violet-600 hover:bg-violet-500 p-3 rounded-full transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $(document).ready(function() { loadFiles(); });
+
+        function uploadFile() {
+            let file = $('#pdfInput')[0].files[0];
+            if(!file) return;
+            let formData = new FormData();
+            formData.append('pdf', file);
+            $.ajax({ url: '/upload', type: 'POST', data: formData, processData: false, contentType: false, success: () => loadFiles() });
+        }
+
+        function loadFiles() {
+            $.get('/files', function(data) {
+                $('#fileList').empty();
+                data.files.forEach(f => {
+                    $('#fileList').append(`
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                            <span class="text-[10px] truncate w-44">${f}</span>
+                            <button onclick="deleteFile('${f}')" class="text-zinc-500 hover:text-red-500 transition">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    `);
+                });
+            });
+        }
+
+        function deleteFile(n) { $.ajax({ url: `/delete/${n}`, type: 'DELETE', success: () => loadFiles() }); }
+
+        function sendMsg() {
+            let msg = $('#userMsg').val();
+            if(!msg) return;
+            $('#chatBox').append(`<div class="flex flex-row-reverse gap-4"><div class="max-w-[80%] text-sm bg-violet-600 p-5 rounded-3xl rounded-tr-none shadow-lg">${msg}</div></div>`);
+            $('#userMsg').val('');
+            
+            let tid = Date.now();
+            $('#chatBox').append(`<div id="${tid}" class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-900/40 flex items-center justify-center text-[10px]">N</div><div class="dots glass rounded-2xl"><div class="dot"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div></div>`);
+            $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
+
+            $.ajax({
+                url: '/chat', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify({msg: msg}),
+                success: function(res) {
+                    $(`#${tid}`).replaceWith(`<div class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div><div class="max-w-[80%] text-sm text-zinc-300 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">${res.reply}</div></div>`);
+                    $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
+                }
+            });
+        }
+        $('#userMsg').keypress(e => { if(e.which == 13) sendMsg(); });
+    </script>
+</body>
+</html>
