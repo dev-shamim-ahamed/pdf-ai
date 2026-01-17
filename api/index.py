@@ -19,7 +19,7 @@ try:
             cred_dict = json.loads(firebase_config_str)
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred, {
-                'storageBucket': 'Tryst-d3288.appspot.com'
+                'storageBucket': 'tryst-d3288.appspot.com'
             })
         bucket = storage.bucket()
     else:
