@@ -28,7 +28,7 @@ except Exception as e:
     print(f"Firebase Setup Error: {e}")
 
 # --- Niloy AI (Gemini 1.5 Flash-8b for Speed) ---
-genai.configure(api_key="AIzaSyBrRlOCJ74wG81MYkGtO5pB8fqKwPYiWhs")
+genai.configure(api_key="AIzaSyBdlzv2ux22RGQFIe2u1_TidQv7VhOZwcY")
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 IDENTITY = "Your name is Niloy. You are a personal assistant. Answer strictly from the PDF memories provided. Never reveal your technical backend."
