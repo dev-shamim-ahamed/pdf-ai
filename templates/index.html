@@ -3,74 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niloy AI - Secure</title>
+    <title>Niloy AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body { background: #050505; color: #fdfdfd; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.04); }
-        .reply-box { background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.1); }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .msg-niloy { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); }
+        .msg-user { background: #7c3aed; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col p-4 md:p-12">
+<body class="h-screen flex flex-col p-4 md:p-12 overflow-hidden">
 
-    <header class="flex justify-between items-center mb-8 px-2">
+    <header class="flex justify-between items-center px-4 mb-8">
         <div>
-            <h1 class="text-lg font-semibold tracking-tight">hello Niloy sir I'm niloy</h1>
-            <div id="status" class="text-[9px] text-zinc-500 uppercase mt-1 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-zinc-700"></span> Linking Cloud...
+            <h1 class="text-xl font-light tracking-tight">hello Niloy sir I'm niloy</h1>
+            <div id="status" class="text-[10px] text-zinc-600 flex items-center gap-2 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-zinc-800" id="dot"></span> 
+                <span id="statText">Syncing Memory...</span>
             </div>
         </div>
+        <button onclick="$('#files').toggle()" class="text-[10px] border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 transition">FILES</button>
     </header>
 
-    <main class="flex-1 glass rounded-[35px] flex flex-col overflow-hidden shadow-2xl">
-        <div id="chatBox" class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
-            <div class="flex gap-4">
-                <div class="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-600/30 flex items-center justify-center text-[10px] text-violet-400 font-bold">N</div>
-                <div class="max-w-[85%] text-sm text-zinc-400 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none">
-                    Welcome sir. I am synced with **Tryst-d3288** bucket. How can I help today?
-                </div>
-            </div>
-        </div>
-
-        <div class="p-6 bg-black/40">
-            <div class="max-w-4xl mx-auto flex items-center relative">
-                <input type="text" id="userMsg" placeholder="Ask anything..." 
-                       class="w-full bg-white/5 border border-white/10 rounded-[22px] py-4 px-8 pr-16 focus:outline-none focus:border-violet-600/40 text-sm">
-                <button onclick="sendMsg()" class="absolute right-3 bg-violet-600 hover:bg-violet-500 p-2.5 rounded-full transition-all">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </button>
+    <main class="flex-1 overflow-y-auto px-4 space-y-8 mb-6" id="chatBox">
+        <div id="files" class="hidden glass p-4 rounded-2xl text-[10px] text-zinc-400 mb-4 animate-fade-in"></div>
+        
+        <div class="flex gap-4 animate-fade-in">
+            <div class="w-8 h-8 rounded-full bg-violet-600/20 flex items-center justify-center text-[10px] font-bold text-violet-500">N</div>
+            <div class="max-w-[80%] text-sm leading-relaxed text-zinc-300 msg-niloy p-4 rounded-2xl rounded-tl-none">
+                Ji Niloy sir, ami ready. Apnar PDF-gulo analyze kore ami reply debo. Ki janhte chan?
             </div>
         </div>
     </main>
 
+    <div class="px-4 pb-4">
+        <div class="max-w-4xl mx-auto relative flex items-center">
+            <input type="text" id="userMsg" placeholder="Ask Niloy..." 
+                   class="w-full bg-white/5 border border-white/5 rounded-full py-5 px-8 pr-16 focus:outline-none focus:border-violet-600/30 text-sm transition-all">
+            <button onclick="sendMsg()" class="absolute right-3 bg-violet-600 hover:bg-violet-500 p-3 rounded-full transition-all">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </button>
+        </div>
+    </div>
+
     <script>
-        $(document).ready(function() {
-            $.post('/sync-memory', function(data) {
+        $(document).ready(() => {
+            $.post('/sync-memory', data => {
                 if(data.files) {
-                    $('#status').html(`<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected to ${data.files.length} Files`);
-                } else {
-                    $('#status').html(`<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Bucket Empty`);
+                    $('#dot').addClass('bg-green-500').removeClass('bg-zinc-800');
+                    $('#statText').text(`${data.files.length} Files Linked`);
+                    $('#files').html("Memory: " + data.files.join(", "));
                 }
-            }).fail(() => $('#status').html(`<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> 500: Server Error`));
+            });
         });
 
         function sendMsg() {
-            let msg = $('#userMsg').val();
-            if(!msg) return;
-            $('#chatBox').append(`<div class="flex flex-row-reverse gap-4"><div class="max-w-[85%] text-sm bg-violet-600 p-5 rounded-3xl rounded-tr-none">${msg}</div></div>`);
+            let m = $('#userMsg').val(); if(!m) return;
+            $('#chatBox').append(`<div class="flex flex-row-reverse gap-4"><div class="max-w-[80%] text-sm text-white msg-user p-4 rounded-2xl rounded-tr-none">${m}</div></div>`);
             $('#userMsg').val('');
-            $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
+            $("#chatBox").animate({ scrollTop: $('#chatBox')[0].scrollHeight }, 500);
 
             $.ajax({
-                url: '/chat', type: 'POST', contentType: 'application/json',
-                data: JSON.stringify({msg: msg}),
-                success: function(res) {
-                    $('#chatBox').append(`<div class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div><div class="max-w-[85%] text-sm text-zinc-300 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5 shadow-sm">${res.reply}</div></div>`);
-                    $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
+                url: '/chat', type: 'POST', contentType: 'application/json', data: JSON.stringify({msg: m}),
+                success: (res) => {
+                    $('#chatBox').append(`<div class="flex gap-4"><div class="w-8 h-8 rounded-full bg-violet-600/20 flex items-center justify-center text-[10px] font-bold text-violet-500">N</div><div class="max-w-[80%] text-sm leading-relaxed text-zinc-300 msg-niloy p-4 rounded-2xl rounded-tl-none">${res.reply}</div></div>`);
+                    $("#chatBox").animate({ scrollTop: $('#chatBox')[0].scrollHeight }, 500);
                 }
             });
         }
+        $('#userMsg').keypress(e => { if(e.which == 13) sendMsg(); });
     </script>
 </body>
 </html>
