@@ -8,25 +8,29 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); }
+        .dot-flashing { position: relative; width: 4px; height: 4px; border-radius: 5px; background-color: #8b5cf6; animation: dot-flashing 1s infinite linear alternate; }
+        @keyframes dot-flashing { 0% { background-color: #8b5cf6; } 50%, 100% { background-color: rgba(139, 92, 246, 0.2); } }
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="h-screen flex flex-col p-6 md:p-12">
-    <header class="flex justify-between items-center mb-8">
+    <header class="flex justify-between items-center mb-8 px-2">
         <div>
             <h1 class="text-xl font-light">hello sir I'm niloy</h1>
-            <div id="status" class="text-[10px] text-zinc-600 mt-1 flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-zinc-800" id="dot"></span>
-                <span id="statText">Syncing...</span>
-            </div>
+            <div id="status" class="text-[9px] text-zinc-600 uppercase mt-1">Syncing...</div>
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto space-y-6 mb-4" id="chatBox"></main>
+    <main class="flex-1 overflow-y-auto space-y-6 mb-4 px-2" id="chatBox"></main>
 
-    <div class="relative max-w-4xl mx-auto w-full">
-        <input type="text" id="userMsg" placeholder="Ask Niloy..." class="w-full bg-white/5 border border-white/5 rounded-full py-4 px-6 focus:outline-none focus:border-violet-600/30 text-sm">
+    <div id="typing" class="hidden flex gap-2 mb-4 px-4 items-center">
+        <div class="dot-flashing"></div>
+        <div class="dot-flashing" style="animation-delay: 0.2s"></div>
+        <div class="dot-flashing" style="animation-delay: 0.4s"></div>
+    </div>
+
+    <div class="relative w-full max-w-4xl mx-auto">
+        <input type="text" id="userMsg" placeholder="Ask Niloy..." class="w-full bg-white/5 border border-white/5 rounded-full py-4 px-6 pr-14 focus:outline-none focus:border-violet-600/30 text-sm">
         <button onclick="sendMsg()" class="absolute right-2 top-1.5 bg-violet-600 p-2.5 rounded-full hover:bg-violet-500 transition-all">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
         </button>
@@ -34,23 +38,20 @@
 
     <script>
         $(document).ready(() => {
-            $.post('/sync-memory', data => {
-                if(data.files) {
-                    $('#dot').addClass('bg-green-500').removeClass('bg-zinc-800');
-                    $('#statText').text(`${data.files.length} Memories Linked`);
-                }
-            });
+            $.post('/sync-memory', d => { if(d.files) $('#status').text(d.files.length + " Memories Linked"); });
         });
 
         function sendMsg() {
             let m = $('#userMsg').val(); if(!m) return;
             $('#chatBox').append(`<div class="flex flex-row-reverse"><div class="max-w-[85%] bg-violet-600 p-4 rounded-2xl rounded-tr-none text-sm">${m}</div></div>`);
             $('#userMsg').val('');
+            $('#typing').removeClass('hidden'); // Show loader
             $("#chatBox").scrollTop($('#chatBox')[0].scrollHeight);
 
             $.ajax({
                 url: '/chat', type: 'POST', contentType: 'application/json', data: JSON.stringify({msg: m}),
                 success: (res) => {
+                    $('#typing').addClass('hidden'); // Hide loader
                     $('#chatBox').append(`<div class="flex gap-4"><div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">N</div><div class="max-w-[85%] text-sm text-zinc-400 p-2">${res.reply}</div></div>`);
                     $("#chatBox").scrollTop($('#chatBox')[0].scrollHeight);
                 }
