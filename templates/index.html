@@ -3,147 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niloy AI</title>
+    <title>Niloy AI - Permanent Memory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body { background-color: #050505; color: #fafafa; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
-        .progress-bar { width: 0%; height: 4px; background: #8b5cf6; border-radius: 2px; transition: width 0.3s; }
-        .dot { width: 5px; height: 5px; background: #8b5cf6; border-radius: 50%; animation: blink 1.4s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        body { background: #070708; color: #f1f1f1; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 15, 16, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .dot-flashing { position: relative; width: 6px; height: 6px; border-radius: 5px; background-color: #8b5cf6; animation: dot-flashing 1s infinite linear alternate; }
+        @keyframes dot-flashing { 0% { background-color: #8b5cf6; } 50%, 100% { background-color: rgba(139, 92, 246, 0.2); } }
     </style>
 </head>
-<body class="h-screen flex flex-col p-4 md:p-8">
+<body class="h-screen flex flex-col p-4 md:p-10">
 
-    <header class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-xl font-medium">hello Niloy sir I'm niloy how can I help you today</h1>
-            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Memory Mode Active</p>
+    <header class="flex justify-between items-center mb-10">
+        <div class="animate-pulse">
+            <h1 class="text-xl font-semibold tracking-wide text-violet-400">hello Niloy sir I'm niloy</h1>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mt-1">Permanent Memory Sync Active</p>
         </div>
 
         <div class="relative">
-            <button onclick="$('#memoryPanel').toggle()" class="bg-zinc-900 border border-white/5 px-5 py-2.5 rounded-2xl text-xs hover:bg-zinc-800 flex items-center gap-2">
-                📂 Memory Center
-            </button>
-            
-            <div id="memoryPanel" class="hidden absolute right-0 mt-4 w-80 glass rounded-3xl p-6 z-50 shadow-2xl">
-                <p class="text-[10px] text-zinc-500 font-bold mb-4">FILES (MAX 3)</p>
-                <div id="fileList" class="space-y-3 mb-4 max-h-40 overflow-y-auto"></div>
-                
-                <div id="progressContainer" class="hidden mb-4">
-                    <div class="flex justify-between text-[10px] text-zinc-400 mb-1">
-                        <span>Uploading...</span>
-                        <span id="percentText">0%</span>
-                    </div>
-                    <div class="w-full bg-white/10 rounded-full"><div id="uploadProgress" class="progress-bar"></div></div>
-                </div>
-
-                <input type="file" id="pdfInput" class="hidden" accept=".pdf" multiple onchange="uploadFiles()">
-                <button onclick="$('#pdfInput').click()" id="uploadBtn" class="w-full bg-violet-600 py-3 rounded-xl text-xs font-bold hover:bg-violet-500 transition">
-                    + Upload Files
-                </button>
+            <div id="memStatus" class="glass px-5 py-2.5 rounded-2xl text-[11px] font-bold text-zinc-400 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span> Checking Cloud Memory...
             </div>
         </div>
     </header>
 
-    <main class="flex-1 glass rounded-[40px] flex flex-col overflow-hidden">
-        <div id="chatBox" class="flex-1 overflow-y-auto p-8 space-y-8">
-            <div class="flex gap-4">
-                <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div>
-                <div class="max-w-[80%] text-sm text-zinc-400 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">
-                    Hello sir! I've been updated. Now you can upload up to 3 PDFs at once and see the progress. How can I help?
+    <main class="flex-1 glass rounded-[45px] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div id="chatBox" class="flex-1 overflow-y-auto p-10 space-y-10 scroll-smooth">
+            <div class="flex gap-5">
+                <div class="w-10 h-10 rounded-2xl bg-violet-600/20 flex items-center justify-center text-xs font-bold text-violet-400 border border-violet-600/30">N</div>
+                <div class="max-w-[85%] text-sm text-zinc-300 leading-relaxed bg-white/5 p-6 rounded-3xl rounded-tl-none border border-white/5">
+                    Welcome back, Niloy sir. I have synced with your Firebase permanent memory. I am ready to answer anything from your 3 documents.
                 </div>
             </div>
         </div>
 
-        <div class="p-6 bg-black/20">
-            <div class="max-w-4xl mx-auto relative flex items-center">
-                <input type="text" id="userMsg" placeholder="Ask anything about your PDFs..." 
-                       class="w-full bg-white/5 border border-white/10 rounded-[25px] py-5 px-8 pr-16 focus:outline-none focus:border-violet-600/50 text-sm">
-                <button onclick="sendMsg()" class="absolute right-3 bg-violet-600 hover:bg-violet-500 p-3 rounded-full transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        <div class="p-8 bg-black/40 border-t border-white/5">
+            <div class="max-w-4xl mx-auto flex items-center relative">
+                <input type="text" id="userMsg" placeholder="Ask Niloy anything..." 
+                       class="w-full bg-white/5 border border-white/10 rounded-[30px] py-6 px-10 pr-20 focus:outline-none focus:border-violet-600/50 text-sm transition-all duration-300">
+                <button onclick="sendMsg()" class="absolute right-4 bg-violet-600 hover:bg-violet-500 p-4 rounded-full transition-all shadow-lg shadow-violet-600/40">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </button>
             </div>
         </div>
     </main>
 
     <script>
-        $(document).ready(function() { loadFiles(); });
-
-        function uploadFiles() {
-            let files = $('#pdfInput')[0].files;
-            if(files.length === 0) return;
-            if(files.length > 3) { alert("Sir, please select maximum 3 files."); return; }
-
-            let formData = new FormData();
-            for(let i=0; i<files.length; i++) { formData.append('pdf', files[i]); }
-
-            $('#progressContainer').show();
-            $('#uploadBtn').attr('disabled', true).addClass('opacity-50');
-
+        $(document).ready(function() {
+            // পেজ লোড হলে Firebase থেকে ফাইল চেক করা
             $.ajax({
-                url: '/upload',
+                url: '/sync-memory',
                 type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                xhr: function() {
-                    var xhr = new window.XMLHttpRequest();
-                    xhr.upload.addEventListener("progress", function(evt) {
-                        if (evt.lengthComputable) {
-                            var percentComplete = (evt.loaded / evt.total) * 100;
-                            $('#uploadProgress').css('width', percentComplete + '%');
-                            $('#percentText').text(Math.round(percentComplete) + '%');
-                        }
-                    }, false);
-                    return xhr;
-                },
-                success: function() {
-                    setTimeout(() => {
-                        $('#progressContainer').hide();
-                        $('#uploadProgress').css('width', '0%');
-                        $('#uploadBtn').attr('disabled', false).removeClass('opacity-50');
-                        loadFiles();
-                    }, 1000);
+                success: function(data) {
+                    if(data.status === 'Found') {
+                        $('#memStatus').html(`<span class="w-2 h-2 rounded-full bg-green-500"></span> ${data.files.length} Files in Memory`);
+                    } else {
+                        $('#memStatus').html(`<span class="w-2 h-2 rounded-full bg-red-500"></span> Memory Empty`);
+                    }
                 }
             });
-        }
-
-        function loadFiles() {
-            $.get('/files', function(data) {
-                $('#fileList').empty();
-                data.files.forEach(f => {
-                    $('#fileList').append(`
-                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
-                            <span class="text-[10px] truncate w-44">${f}</span>
-                            <button onclick="deleteFile('${f}')" class="text-zinc-500 hover:text-red-500 transition">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
-                        </div>
-                    `);
-                });
-            });
-        }
-
-        function deleteFile(n) { $.ajax({ url: `/delete/${n}`, type: 'DELETE', success: () => loadFiles() }); }
+        });
 
         function sendMsg() {
             let msg = $('#userMsg').val();
             if(!msg) return;
-            $('#chatBox').append(`<div class="flex flex-row-reverse gap-4"><div class="max-w-[80%] text-sm bg-violet-600 p-5 rounded-3xl rounded-tr-none shadow-lg">${msg}</div></div>`);
+
+            $('#chatBox').append(`<div class="flex flex-row-reverse gap-5"><div class="max-w-[85%] text-sm bg-violet-600 p-6 rounded-3xl rounded-tr-none shadow-xl border border-violet-400/20">${msg}</div></div>`);
             $('#userMsg').val('');
             
             let tid = Date.now();
-            $('#chatBox').append(`<div id="${tid}" class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-900/40 flex items-center justify-center text-[10px]">N</div><div class="flex gap-1 bg-white/5 p-4 rounded-2xl"><div class="dot"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div></div>`);
+            $('#chatBox').append(`<div id="${tid}" class="flex gap-5"><div class="w-10 h-10 rounded-2xl bg-zinc-800 flex items-center justify-center text-xs">N</div><div class="flex gap-2 bg-white/5 p-6 rounded-3xl"><div class="dot-flashing"></div><div class="dot-flashing" style="animation-delay:0.2s"></div><div class="dot-flashing" style="animation-delay:0.4s"></div></div></div>`);
             $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
 
             $.ajax({
-                url: '/chat', type: 'POST', contentType: 'application/json',
+                url: '/chat',
+                type: 'POST',
+                contentType: 'application/json',
                 data: JSON.stringify({msg: msg}),
                 success: function(res) {
-                    $(`#${tid}`).replaceWith(`<div class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div><div class="max-w-[80%] text-sm text-zinc-300 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">${res.reply}</div></div>`);
+                    $(`#${tid}`).replaceWith(`<div class="flex gap-5"><div class="w-10 h-10 rounded-2xl bg-violet-600 flex items-center justify-center text-xs font-bold">N</div><div class="max-w-[85%] text-sm text-zinc-300 leading-relaxed bg-white/5 p-6 rounded-3xl rounded-tl-none border border-white/5">${res.reply}</div></div>`);
                     $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
+                },
+                error: function() {
+                    $(`#${tid}`).replaceWith(`<div class="p-4 text-red-400 text-xs">Sir, response failed. Please check Vercel logs or API key.</div>`);
                 }
             });
         }
