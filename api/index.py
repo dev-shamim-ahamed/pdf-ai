@@ -19,7 +19,7 @@ bucket = storage.bucket()
 
 # --- AI Setup (Gemini 1.5 Flash - Best for PDFs) ---
 genai.configure(api_key=os.getenv("API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Strict instruction: No extra talk, only Bengali/Banglish mix
 SYSTEM_PROMPT = (
