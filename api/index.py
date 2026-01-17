@@ -5,12 +5,12 @@ from firebase_admin import credentials, storage
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 
-# পাথ এবং কনফিগারেশন
+# Vercel পাথ ফিক্স
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = "niloy_ultra_secure_2026"
 
-# --- Firebase Setup ---
+# --- Firebase Initialization ---
 bucket = None
 try:
     firebase_config_str = os.getenv("FIREBASE_CONFIG")
@@ -23,15 +23,14 @@ try:
             })
         bucket = storage.bucket()
 except Exception as e:
-    print(f"Firebase Init Error: {e}")
+    print(f"Firebase Setup Failure: {e}")
 
-# --- Niloy AI (Updated to Gemini 3 Pro Preview) ---
-# আপনার নতুন তৈরি করা API Key এখানে দিন
+# --- Niloy AI (Reliable Gemini 2.5 Flash) ---
+# আপনার নতুন তৈরি করা সঠিক প্রজেক্টের API Key এখানে দিন
 genai.configure(api_key="AIzaSyBdlzv2ux22RGQFIe2u1_TidQv7VhOZwcY")
-# আপনার স্ক্রিনশট অনুযায়ী মডেল কোডটি ব্যবহার করা হয়েছে
-model = genai.GenerativeModel("gemini-2.5-flash") 
+model = genai.GenerativeModel("gemini-2.5-flash") # দ্রুত এবং স্ট্যাবল মডেল
 
-IDENTITY = "Your name is Niloy. You are a professional assistant. Answer strictly from the PDF documents provided."
+IDENTITY = "Your name is Niloy. You are a personal assistant. Answer strictly from the PDF memories provided."
 
 @app.route('/')
 def index():
@@ -50,23 +49,25 @@ def sync_memory():
 @app.route('/chat', methods=['POST'])
 def chat():
     user_msg = request.json.get('msg')
-    if not bucket: return jsonify({'reply': "Error: Cloud connection failed."})
+    if not bucket: return jsonify({'reply': "Error: Cloud memory is not linked."})
     
     try:
+        # Firebase থেকে PDF ডাউনলোড করার সময় টাইমআউট হ্যান্ডলিং
         blobs = bucket.list_blobs(prefix="permanent_memory/")
         pdf_contents = []
-        # Gemini 3 Pro অনেক বড় কনটেক্সট হ্যান্ডেল করতে পারে
         for blob in list(blobs)[:3]:
-            pdf_contents.append({"mime_type": "application/pdf", "data": blob.download_as_bytes()})
+            data = blob.download_as_bytes()
+            if data:
+                pdf_contents.append({"mime_type": "application/pdf", "data": data})
 
         if not pdf_contents:
-            return jsonify({'reply': "Sir, 'permanent_memory' ফোল্ডারে কোনো PDF নেই।"})
+            return jsonify({'reply': "Sir, 'permanent_memory' ফোল্ডারে কোনো ভ্যালিড PDF ফাইল নেই।"})
 
         # AI Response Generation
         response = model.generate_content([IDENTITY] + pdf_contents + [user_msg])
         return jsonify({'reply': response.text})
     except Exception as e:
-        # এটি ৫০০ এরর হওয়া আটকাবে এবং চ্যাট বক্সেই এরর দেখাবে
-        return jsonify({'reply': f"AI processing failed. Please check if the API key and model are active. Error: {str(e)}"})
+        # এটি ৫০০ এরর হওয়া আটকাবে এবং মোবাইল ব্রাউজারে এরর দেখাবে
+        return jsonify({'reply': f"Niloy AI System Alert: {str(e)}"})
 
 app = app
