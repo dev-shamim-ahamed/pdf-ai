@@ -29,7 +29,7 @@ except Exception as e:
 
 # --- Niloy AI (Gemini 1.5 Flash-8b for Speed) ---
 genai.configure(api_key="AIzaSyBrRlOCJ74wG81MYkGtO5pB8fqKwPYiWhs")
-model = genai.GenerativeModel("gemini-1.5-flash-8b")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 IDENTITY = "Your name is Niloy. You are a personal assistant. Answer strictly from the PDF memories provided. Never reveal your technical backend."
 
