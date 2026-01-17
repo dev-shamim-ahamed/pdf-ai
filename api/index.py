@@ -14,7 +14,7 @@ if firebase_config and not firebase_admin._apps:
     cred_dict = json.loads(firebase_config)
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred, {
-        'storage_bucket': 'moneymng.firebasestorage.app'
+        'storage_bucket': 'tryst-d3288.appspot.com'
     })
 
 bucket = storage.bucket()
