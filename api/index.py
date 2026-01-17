@@ -17,15 +17,15 @@ if firebase_config and not firebase_admin._apps:
 
 bucket = storage.bucket()
 
-# --- AI Setup (Gemini 2.5 Flash) ---
+# --- AI Setup (Gemini 1.5 Flash - Best for PDFs) ---
 genai.configure(api_key=os.getenv("API_KEY"))
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Strict instruction to avoid extra talk
+# Strict instruction: No extra talk, only Bengali/Banglish mix
 SYSTEM_PROMPT = (
-    "Your name is Niloy. Respond ONLY with the information found in the PDFs. "
-    "Do not include conversational filler, introductory phrases, or extra text. "
-    "Use a concise mix of Bengali and Banglish. If not found, say 'Sir, memory-te nei'."
+    "Your name is Niloy. Respond ONLY with the requested answer from the PDFs. "
+    "Do not use introductory phrases like 'According to the document' or 'Hello'. "
+    "Keep it strictly to the point in a natural mix of Bengali and Banglish."
 )
 
 @app.route('/')
@@ -46,11 +46,17 @@ def chat():
     user_msg = request.json.get('msg')
     try:
         blobs = bucket.list_blobs(prefix="permanent_memory/")
-        pdf_contents = [{"mime_type": "application/pdf", "data": b.download_as_bytes()} for b in list(blobs)[:3]]
+        pdf_contents = []
+        for blob in list(blobs)[:3]:
+            data = blob.download_as_bytes()
+            # 400 error bondho korte check kora hocche jate file size 0 na hoy
+            if data and len(data) > 100: 
+                pdf_contents.append({"mime_type": "application/pdf", "data": data})
         
         if not pdf_contents:
-            return jsonify({'reply': "Sir, memory empty."})
+            return jsonify({'reply': "Sir, storage-e kono valid PDF paini."})
 
+        # AI Response Generation
         response = model.generate_content([SYSTEM_PROMPT] + pdf_contents + [user_msg])
         return jsonify({'reply': response.text.strip()})
     except Exception as e:
