@@ -9,49 +9,58 @@
     <style>
         body { background-color: #050505; color: #fafafa; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
-        .dots { display: flex; gap: 4px; padding: 10px; }
+        .progress-bar { width: 0%; height: 4px; background: #8b5cf6; border-radius: 2px; transition: width 0.3s; }
         .dot { width: 5px; height: 5px; background: #8b5cf6; border-radius: 50%; animation: blink 1.4s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
     </style>
 </head>
 <body class="h-screen flex flex-col p-4 md:p-8">
 
-    <header class="flex justify-between items-center mb-8 px-2">
+    <header class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-xl font-medium">hello Niloy sir I'm niloy how can I help you today</h1>
-            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Thought Partner • Secure Memory</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Memory Mode Active</p>
         </div>
 
         <div class="relative">
-            <button onclick="$('#memoryPanel').toggle()" class="bg-zinc-900 border border-white/5 px-5 py-2.5 rounded-2xl text-xs hover:bg-zinc-800 transition">
-                Memory Center
+            <button onclick="$('#memoryPanel').toggle()" class="bg-zinc-900 border border-white/5 px-5 py-2.5 rounded-2xl text-xs hover:bg-zinc-800 flex items-center gap-2">
+                📂 Memory Center
             </button>
             
             <div id="memoryPanel" class="hidden absolute right-0 mt-4 w-80 glass rounded-3xl p-6 z-50 shadow-2xl">
-                <p class="text-[10px] text-zinc-500 font-bold mb-4">FILES IN MEMORY</p>
-                <div id="fileList" class="space-y-3 mb-6 max-h-40 overflow-y-auto"></div>
-                <input type="file" id="pdfInput" class="hidden" accept=".pdf" onchange="uploadFile()">
-                <button onclick="$('#pdfInput').click()" class="w-full bg-violet-600 py-3 rounded-xl text-xs font-bold hover:bg-violet-500 transition">
-                    + Upload New PDF
+                <p class="text-[10px] text-zinc-500 font-bold mb-4">FILES (MAX 3)</p>
+                <div id="fileList" class="space-y-3 mb-4 max-h-40 overflow-y-auto"></div>
+                
+                <div id="progressContainer" class="hidden mb-4">
+                    <div class="flex justify-between text-[10px] text-zinc-400 mb-1">
+                        <span>Uploading...</span>
+                        <span id="percentText">0%</span>
+                    </div>
+                    <div class="w-full bg-white/10 rounded-full"><div id="uploadProgress" class="progress-bar"></div></div>
+                </div>
+
+                <input type="file" id="pdfInput" class="hidden" accept=".pdf" multiple onchange="uploadFiles()">
+                <button onclick="$('#pdfInput').click()" id="uploadBtn" class="w-full bg-violet-600 py-3 rounded-xl text-xs font-bold hover:bg-violet-500 transition">
+                    + Upload Files
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 glass rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
+    <main class="flex-1 glass rounded-[40px] flex flex-col overflow-hidden">
         <div id="chatBox" class="flex-1 overflow-y-auto p-8 space-y-8">
             <div class="flex gap-4">
                 <div class="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-[10px] font-bold">N</div>
                 <div class="max-w-[80%] text-sm text-zinc-400 leading-relaxed bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">
-                    Hello sir! I'm Niloy AI. Upload your PDFs and ask me anything. I won't save any history after you leave.
+                    Hello sir! I've been updated. Now you can upload up to 3 PDFs at once and see the progress. How can I help?
                 </div>
             </div>
         </div>
 
         <div class="p-6 bg-black/20">
             <div class="max-w-4xl mx-auto relative flex items-center">
-                <input type="text" id="userMsg" placeholder="Ask anything..." 
-                       class="w-full bg-white/5 border border-white/10 rounded-[25px] py-5 px-8 pr-16 focus:outline-none focus:border-violet-600/50 transition-all text-sm">
+                <input type="text" id="userMsg" placeholder="Ask anything about your PDFs..." 
+                       class="w-full bg-white/5 border border-white/10 rounded-[25px] py-5 px-8 pr-16 focus:outline-none focus:border-violet-600/50 text-sm">
                 <button onclick="sendMsg()" class="absolute right-3 bg-violet-600 hover:bg-violet-500 p-3 rounded-full transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </button>
@@ -62,12 +71,43 @@
     <script>
         $(document).ready(function() { loadFiles(); });
 
-        function uploadFile() {
-            let file = $('#pdfInput')[0].files[0];
-            if(!file) return;
+        function uploadFiles() {
+            let files = $('#pdfInput')[0].files;
+            if(files.length === 0) return;
+            if(files.length > 3) { alert("Sir, please select maximum 3 files."); return; }
+
             let formData = new FormData();
-            formData.append('pdf', file);
-            $.ajax({ url: '/upload', type: 'POST', data: formData, processData: false, contentType: false, success: () => loadFiles() });
+            for(let i=0; i<files.length; i++) { formData.append('pdf', files[i]); }
+
+            $('#progressContainer').show();
+            $('#uploadBtn').attr('disabled', true).addClass('opacity-50');
+
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function(evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = (evt.loaded / evt.total) * 100;
+                            $('#uploadProgress').css('width', percentComplete + '%');
+                            $('#percentText').text(Math.round(percentComplete) + '%');
+                        }
+                    }, false);
+                    return xhr;
+                },
+                success: function() {
+                    setTimeout(() => {
+                        $('#progressContainer').hide();
+                        $('#uploadProgress').css('width', '0%');
+                        $('#uploadBtn').attr('disabled', false).removeClass('opacity-50');
+                        loadFiles();
+                    }, 1000);
+                }
+            });
         }
 
         function loadFiles() {
@@ -95,7 +135,7 @@
             $('#userMsg').val('');
             
             let tid = Date.now();
-            $('#chatBox').append(`<div id="${tid}" class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-900/40 flex items-center justify-center text-[10px]">N</div><div class="dots glass rounded-2xl"><div class="dot"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div></div>`);
+            $('#chatBox').append(`<div id="${tid}" class="flex gap-4"><div class="w-8 h-8 rounded-xl bg-violet-900/40 flex items-center justify-center text-[10px]">N</div><div class="flex gap-1 bg-white/5 p-4 rounded-2xl"><div class="dot"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div></div>`);
             $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight);
 
             $.ajax({
