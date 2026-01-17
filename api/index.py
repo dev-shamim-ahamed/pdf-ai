@@ -7,9 +7,9 @@ from flask import Flask, render_template, request, session, jsonify
 import google.generativeai as genai
 
 app = Flask(__name__, template_folder='../templates')
-app.secret_key = "niloy_private_key_2026"
+app.secret_key = "niloy_ultra_secure_2026"
 
-# --- Firebase Config (Vercel Env Variable theke) ---
+# --- Firebase Config ---
 firebase_config = os.getenv("FIREBASE_CONFIG")
 if firebase_config and not firebase_admin._apps:
     cred_dict = json.loads(firebase_config)
@@ -20,12 +20,11 @@ if firebase_config and not firebase_admin._apps:
 
 bucket = storage.bucket()
 
-# --- AI Setup (Niloy AI) ---
-# Eikhane apnar apiKey direct dewa holo, kintu Vercel Env Variable e rakha safe.
+# --- Niloy AI Setup ---
 genai.configure(api_key="AIzaSyAWHka0BBoaplW4_f4_Orq-zku8nGHIUYE")
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-IDENTITY = "Your name is Niloy. You are a personal thought partner for Niloy sir. Never mention Google, Gemini, or being an AI. If asked, you are Niloy AI. Be concise and professional."
+IDENTITY = "Your name is Niloy. You are a personal thought partner for Niloy sir. Never mention Google or Gemini. If asked, you are Niloy AI."
 
 @app.route('/')
 def index():
@@ -36,12 +35,16 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     sid = session.get('session_id')
-    file = request.files.get('pdf')
-    if file:
+    files = request.files.getlist('pdf')
+    if not files:
+        return jsonify({'error': 'No files'}), 400
+    
+    # Ekshathe shorboccho 3-ti file allow kora hobe
+    for file in files[:3]:
         blob = bucket.blob(f"memories/{sid}/{file.filename}")
         blob.upload_from_string(file.read(), content_type='application/pdf')
-        return jsonify({'status': 'Uploaded'})
-    return jsonify({'error': 'Failed'})
+    
+    return jsonify({'status': 'All files synced'})
 
 @app.route('/files', methods=['GET'])
 def list_files():
@@ -71,5 +74,4 @@ def chat():
     response = model.generate_content(prompt)
     return jsonify({'reply': response.text})
 
-# For Vercel
 app = app
