@@ -29,7 +29,7 @@ except Exception as e:
 # আপনার নতুন তৈরি করা API Key এখানে দিন
 genai.configure(api_key="AIzaSyBdlzv2ux22RGQFIe2u1_TidQv7VhOZwcY")
 # আপনার স্ক্রিনশট অনুযায়ী মডেল কোডটি ব্যবহার করা হয়েছে
-model = genai.GenerativeModel("gemini-3-pro-preview") 
+model = genai.GenerativeModel("gemini-2.5-flash") 
 
 IDENTITY = "Your name is Niloy. You are a professional assistant. Answer strictly from the PDF documents provided."
 
